@@ -11,6 +11,9 @@
 using violent::CombRiotEngine;
 using violent::CombRiotParameters;
 
+static_assert (sizeof (CombRiotEngine) < 65536,
+               "CombRiotEngine must stay small enough for stack-local tests on Windows");
+
 namespace
 {
 
@@ -191,4 +194,3 @@ int main()
     std::cout << "CombRiotEngineTests passed\n";
     return 0;
 }
-

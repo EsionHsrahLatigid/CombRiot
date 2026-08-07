@@ -26,7 +26,7 @@ void CombRiotEngine::reset() noexcept
 {
     for (auto& voice : voices)
     {
-        voice.buffer.fill (0.0f);
+        voice.buffer->fill (0.0f);
         voice.writeIndex = 0;
     }
 
@@ -98,7 +98,7 @@ StereoFrame CombRiotEngine::processSample() noexcept
         const auto delayed = readFractionalDelay (voice);
         const auto feedback = std::clamp (delayed * voiceFeedbackCoefficient (voice), -0.98f, 0.98f);
         const auto writeSample = std::clamp (exciter + feedback, -1.0f, 1.0f);
-        voice.buffer[static_cast<std::size_t> (voice.writeIndex)] = writeSample;
+        (*voice.buffer)[static_cast<std::size_t> (voice.writeIndex)] = writeSample;
         voice.writeIndex = (voice.writeIndex + 1) & delayMask;
 
         const auto contribution = boundedDrive (delayed, 1.2f) * 0.36f;
@@ -150,8 +150,8 @@ float CombRiotEngine::readFractionalDelay (const Voice& voice) noexcept
     const auto fraction = readPosition - static_cast<float> (index0);
     index0 &= delayMask;
     const auto index1 = (index0 + 1) & delayMask;
-    const auto sample0 = voice.buffer[static_cast<std::size_t> (index0)];
-    const auto sample1 = voice.buffer[static_cast<std::size_t> (index1)];
+    const auto sample0 = (*voice.buffer)[static_cast<std::size_t> (index0)];
+    const auto sample1 = (*voice.buffer)[static_cast<std::size_t> (index1)];
     return sample0 + (sample1 - sample0) * fraction;
 }
 
@@ -211,4 +211,3 @@ float CombRiotEngine::voiceFeedbackCoefficient (const Voice& voice) const noexce
 }
 
 } // namespace violent
-

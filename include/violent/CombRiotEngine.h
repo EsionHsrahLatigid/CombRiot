@@ -4,6 +4,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 
 namespace violent
 {
@@ -79,7 +80,7 @@ private:
 
     struct Voice
     {
-        std::array<float, maxDelaySamples> buffer {};
+        std::unique_ptr<std::array<float, maxDelaySamples>> buffer = std::make_unique<std::array<float, maxDelaySamples>>();
         float delaySamples = 240.0f;
         float targetDelaySamples = 240.0f;
         float panLeft = 0.70710678f;
@@ -123,4 +124,3 @@ private:
 };
 
 } // namespace violent
-
