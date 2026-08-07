@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.31)
 
 if(APPLE)
-    project(CombRiot VERSION 0.1.0 LANGUAGES C CXX OBJC OBJCXX)
+    project(CombRiot VERSION 0.1.1 LANGUAGES C CXX OBJC OBJCXX)
 else()
-    project(CombRiot VERSION 0.1.0 LANGUAGES C CXX)
+    project(CombRiot VERSION 0.1.1 LANGUAGES C CXX)
 endif()
 
 option(COMBRIOT_BUILD_PLUGIN "Build the YUP Standalone/VST3/AU targets" ON)
