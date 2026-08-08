@@ -65,12 +65,13 @@ Release app and plugins:
 
 ```sh
 cmake --preset plugin-release
-cmake --build --preset plugin-release --parallel
+cmake --build --preset plugin-release --parallel --target combriot_release_bundles
 ctest --preset plugin-release
 ```
 
 Artifacts:
 
+- `combriot_release_bundles`
 - `build/plugin-release/combriot_standalone_plugin.app`
 - `build/plugin-release/VST3/Release/combriot_vst3_plugin.vst3`
 - `build/plugin-release/combriot_au_plugin.component`
@@ -86,12 +87,16 @@ The local macOS build ad-hoc signs all three bundles. Distribution still require
 
 ## CI and releases
 
-`.github/workflows/ci.yml` runs on macOS 26 arm64 and Windows 2025 x64. CMake obtains the pinned YUP revision when no adjacent checkout exists, then builds Debug tests and Release bundles and uploads:
+`.github/workflows/ci.yml` is the required CI entrypoint for pushes to `main`, pull requests, and manual runs. A lightweight Linux classifier always runs. Changes limited to `README.md`, `DESIGN.md`, `LICENSE`, `docs/**`, or `.github/ISSUE_TEMPLATE/**` skip the heavy jobs; every other change runs Debug tests and Release bundle builds on macOS 26 arm64 and Windows 2025 x64. Manual dispatches default to forcing both heavy jobs.
 
-- `CombRiot-latest-macos-arm64.zip` with Standalone, VST3, and AUv2
-- `CombRiot-latest-windows-x64.zip` with Standalone and VST3
+Successful heavy runs upload two immutable, 14-day artifacts:
 
-On `v*` tags a separate release job waits for both platform jobs, creates or updates the matching GitHub Release, and attaches both versioned ZIP files with the GitHub CLI.
+- `CombRiot-latest-macos-arm64`, containing `CombRiot-latest-macos-arm64.zip` and `SHA256SUMS.txt`
+- `CombRiot-latest-windows-x64`, containing `CombRiot-latest-windows-x64.zip` and `SHA256SUMS.txt`
+
+`.github/workflows/release.yml` is the only `v*` tag workflow. It performs no compilation. The Ubuntu release job resolves lightweight or annotated tags to a commit, requires the tag version to match the CMake project version, requires one successful `CI` push run on `main` for that exact SHA, downloads exactly the two expected unexpired artifacts, verifies their strict single-line SHA-256 manifests and ZIP integrity, then publishes versioned assets such as `CombRiot-0.2.0-macos-arm64.zip` and `CombRiot-0.2.0-windows-x64.zip`. Publication uses a draft release whose asset list is sanitized and rechecked to contain exactly those two ZIPs. Missing, expired, ambiguous, or mismatched provenance fails closed.
+
+Release operator sequence: merge or push the version commit to `main`, wait for both platform jobs and `CI Summary` to pass, then create and push the version tag. GitHub CLI 2.x or newer is required by the release runner. Never move or reuse a published tag; correct the source and use the next patch version instead.
 
 ## Verification covered
 

@@ -131,6 +131,16 @@ if(COMBRIOT_BUILD_PLUGIN)
         add_test(NAME combriot_plugin_bridge_tests COMMAND combriot_plugin_bridge_tests)
     endif()
 
+    set(combriot_release_bundle_targets
+        combriot_standalone_plugin
+        combriot_vst3_plugin)
+    if(APPLE)
+        list(APPEND combriot_release_bundle_targets combriot_au_plugin)
+    endif()
+
+    add_custom_target(combriot_release_bundles
+        DEPENDS ${combriot_release_bundle_targets})
+
     if(APPLE AND COMBRIOT_ADHOC_SIGN)
         find_program(COMBRIOT_CODESIGN_EXECUTABLE codesign REQUIRED)
         foreach(combriot_target IN ITEMS combriot_standalone_plugin combriot_vst3_plugin combriot_au_plugin)
