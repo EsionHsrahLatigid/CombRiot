@@ -36,6 +36,7 @@ jobs:
         run: >
           cmake --build build/plugin-release --config Release --parallel
           --target combriot_engine_tests
+          combriot_plugin_bridge_tests
           combriot_standalone_plugin
           combriot_vst3_plugin
           combriot_au_plugin
@@ -105,6 +106,7 @@ jobs:
         run: >
           cmake --build build/windows-release --config Release --parallel
           --target combriot_engine_tests
+          combriot_plugin_bridge_tests
           combriot_standalone_plugin
           combriot_vst3_plugin
 

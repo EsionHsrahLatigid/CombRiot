@@ -5,7 +5,7 @@
 - Status: Active
 - Last refreshed: 2026-08-08
 - Primary product surfaces: macOS Standalone, VST3 editor, AUv2 editor
-- Evidence reviewed: local engine, YUP wrapper, generic parameter-grid editor, regression tests
+- Evidence reviewed: local engine, YUP wrapper, CombRiot editor, regression tests
 
 ## Brand
 
@@ -28,8 +28,8 @@
 ## Information architecture
 
 - Primary navigation: one-page instrument panel
-- Core routes/screens: parameter grid only
-- Content hierarchy: exciter and decay first, feedback structure second, stereo/output safety last
+- Core routes/screens: one instrument panel with standalone trigger, output activity meter, and parameter grid
+- Content hierarchy: trigger/activity first, exciter and decay second, feedback structure third, stereo/output safety last
 
 ## Design principles
 
@@ -49,13 +49,13 @@
 ## Components
 
 - Existing components to reuse: YUP `Slider`, `Label`, `AudioProcessorEditor`
-- New/changed components: optional future resonator activity and burst envelope visualization
+- New/changed components: CombRiot momentary trigger pad and processor-polled output peak meter
 - Token/component ownership: editor-local constants until YUP exposes a stable theme/token workflow
 
 ## Accessibility
 
 - Target standard: practical desktop accessibility within current YUP capabilities
-- Keyboard/focus behavior: host/YUP defaults
+- Keyboard/focus behavior: Space gates the standalone trigger when editor focus reaches the CombRiot panel; mouse and Space holds are combined before publishing to the processor
 - Contrast/readability: labels and numeric values remain readable against the dark field
 - Reduced motion: no full-screen flashes or random animation
 
@@ -70,7 +70,7 @@
 - Loading: immediate deterministic initialization
 - Empty: silence until MIDI note-on
 - Error: invalid and non-finite parameter values clamp safely
-- Success: values update visibly and audio changes deterministically
+- Success: values update visibly, trigger state/meter activity are visible, and audio changes deterministically
 - Disabled: no hidden disabled controls
 
 ## Content voice
@@ -82,11 +82,10 @@
 ## Implementation constraints
 
 - Framework/styling system: C++20 and YUP GUI/audio processor modules
-- Performance constraints: no allocation, file access, locks, or non-deterministic calls in the audio render path
+- Performance constraints: no allocation, file access, locks, or non-deterministic calls in the audio render path; UI commands cross to the audio thread through processor-owned atomic edge counters and a held-state latch
 - Compatibility constraints: state version changes require migration
-- Test expectations: engine regression tests, three-format macOS build, bundle packaging
+- Test expectations: engine regression tests, plugin bridge trigger test, three-format macOS build, bundle packaging
 
 ## Open questions
 
-- [ ] Which resonator state signals are useful to expose visually without unsafe audio-thread synchronization?
-
+- [ ] Which per-resonator state signals are useful to expose visually beyond the aggregate output peak?

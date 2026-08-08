@@ -6,6 +6,7 @@
 
 #include <array>
 #include <atomic>
+#include <cstdint>
 
 namespace violent::plugin
 {
@@ -35,6 +36,10 @@ public:
     bool hasEditor() const override;
     yup::AudioProcessorEditor* createEditor() override;
 
+    void setStandaloneTriggerGate (bool shouldBeOn) noexcept;
+    [[nodiscard]] bool getStandaloneTriggerGate() const noexcept;
+    [[nodiscard]] float consumeOutputPeak() noexcept;
+
 private:
     enum ParameterIndex
     {
@@ -52,14 +57,25 @@ private:
 
     void updateEngineParameters (int samplePosition, int samplesSinceLastUpdate);
     void resetControlCadence() noexcept;
+    void applyStandaloneTriggerGate() noexcept;
+    void advanceStandaloneTriggerClock() noexcept;
 
     std::array<yup::AudioParameter::Ptr, parameterCount> parameters;
     std::array<yup::AudioParameterHandle, parameterCount> parameterHandles;
     CombRiotEngine engine;
 
     int lastNote = -1;
+    bool standaloneGateActive = false;
+    bool pendingStandaloneRelease = false;
+    int samplesSinceStandaloneTrigger = 0;
+    std::uint32_t consumedStandalonePressCount = 0;
+    std::uint32_t consumedStandaloneReleaseCount = 0;
     int controlSamplesUntilUpdate = 0;
     int samplesSinceControlUpdate = 1;
+    std::atomic<bool> standaloneGateRequested { false };
+    std::atomic<std::uint32_t> standalonePressCount { 0 };
+    std::atomic<std::uint32_t> standaloneReleaseCount { 0 };
+    std::atomic<std::uint32_t> outputPeakQuantized { 0 };
     std::atomic<bool> controlRefreshPending { false };
     std::atomic<int> currentPreset { 0 };
     std::array<yup::String, 4> presetNames {
@@ -71,4 +87,3 @@ private:
 };
 
 } // namespace violent::plugin
-

@@ -1,6 +1,6 @@
 # CombRiot
 
-CombRiot is a MIDI-triggered stereo noise instrument built with [YUP](https://github.com/kunitoki/yup). It excites eight fractional comb resonators with a deterministic note-seeded burst, then lets the resonator bank decay through bounded feedback.
+CombRiot is a MIDI-triggered stereo noise instrument built with [YUP](https://github.com/kunitoki/yup). It excites eight fractional comb resonators with a deterministic note-seeded burst, then lets the resonator bank decay through bounded feedback. The Standalone/editor surface also includes a built-in momentary trigger for quick auditioning without external MIDI.
 
 This project is independent and self-contained except for an adjacent YUP checkout at `../yup`. It builds the CombRiot Standalone app, VST3, AUv2, and deterministic DSP regression tests.
 
@@ -14,6 +14,13 @@ This project is independent and self-contained except for an adjacent YUP checko
 | AU manufacturer | `2Bit` |
 | Formats | Standalone, VST3, AUv2 on macOS |
 | Type | Synth, stereo output, MIDI input |
+
+## Standalone/editor controls
+
+- The `TRIGGER` pad is momentary. Hold it to fire the same deterministic internal note used for standalone auditioning.
+- The Space key also gates the standalone trigger when the editor has keyboard focus. Mouse and Space are combined, so releasing one input leaves the trigger held while the other remains down.
+- External MIDI note-on/off handling is preserved. MIDI notes continue to select their own deterministic structures and take priority over the built-in trigger while held.
+- The horizontal activity meter shows recent post-ceiling output peak from the audio processor.
 
 ## Sound engine
 
@@ -88,10 +95,10 @@ On `v*` tags a separate release job waits for both platform jobs, creates or upd
 
 ## Verification covered
 
-The engine tests cover deterministic same-note output, note-selected structure changes, silence before trigger, velocity-zero silence, comb tail decay, longer-decay energy, polarity changes, extreme-parameter finiteness, output ceiling behavior, and stereo buffer rendering.
+The engine tests cover deterministic same-note output, note-selected structure changes, silence before trigger, velocity-zero silence, comb tail decay, longer-decay energy, polarity changes, extreme-parameter finiteness, output ceiling behavior, and stereo buffer rendering. The plugin bridge test covers the processor-owned synthetic standalone trigger and proves it produces nonzero audio through the wrapper path.
 
 ## Current limits
 
-- The editor is a functional parameter grid; product-specific graphics and meters are future work.
+- The editor is still intentionally dense and utility-first; product-specific graphics beyond the trigger and output activity meter are future work.
 - The verified local artifacts are arm64.
 - DAW scanning, AU/VST3 host validation, listening tests, and calibrated loudness tests remain host-specific follow-up work.

@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.31)
 
 if(APPLE)
-    project(CombRiot VERSION 0.1.1 LANGUAGES C CXX OBJC OBJCXX)
+    project(CombRiot VERSION 0.2.0 LANGUAGES C CXX OBJC OBJCXX)
 else()
-    project(CombRiot VERSION 0.1.1 LANGUAGES C CXX)
+    project(CombRiot VERSION 0.2.0 LANGUAGES C CXX)
 endif()
 
 option(COMBRIOT_BUILD_PLUGIN "Build the YUP Standalone/VST3/AU targets" ON)
@@ -96,15 +96,40 @@ if(COMBRIOT_BUILD_PLUGIN)
             yup::yup_audio_processors)
 
     target_sources(combriot_shared INTERFACE
+        source/violent/plugins/CombRiotEditor.cpp
+        source/violent/plugins/CombRiotEditor.h
         source/violent/ParameterGridEditor.cpp
         source/violent/ParameterGridEditor.h
         source/violent/ProductState.h
+        source/violent/plugins/StandaloneGateState.h
         source/violent/plugins/CombRiotPlugin.cpp
         source/violent/plugins/CombRiotPlugin.h)
     target_link_libraries(combriot_shared INTERFACE combriot_engine)
     target_include_directories(combriot_shared INTERFACE
         "${CMAKE_CURRENT_LIST_DIR}/include"
         "${CMAKE_CURRENT_LIST_DIR}/source")
+
+    if(COMBRIOT_BUILD_TESTS)
+        add_executable(combriot_plugin_bridge_tests
+            tests/CombRiotPluginBridgeTests.cpp
+            source/violent/plugins/CombRiotPlugin.cpp)
+        target_link_libraries(combriot_plugin_bridge_tests PRIVATE
+            combriot_engine
+            yup::yup_audio_processors)
+        target_compile_definitions(combriot_plugin_bridge_tests PRIVATE
+            COMBRIOT_PLUGIN_BRIDGE_TEST=1
+            DEBUG=1)
+        target_include_directories(combriot_plugin_bridge_tests PRIVATE
+            "${CMAKE_CURRENT_LIST_DIR}/include"
+            "${CMAKE_CURRENT_LIST_DIR}/source")
+        target_compile_features(combriot_plugin_bridge_tests PRIVATE cxx_std_20)
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang|GNU")
+            target_compile_options(combriot_plugin_bridge_tests PRIVATE -Wall -Wextra -Wpedantic -UNDEBUG)
+        elseif(MSVC)
+            target_compile_options(combriot_plugin_bridge_tests PRIVATE /UNDEBUG)
+        endif()
+        add_test(NAME combriot_plugin_bridge_tests COMMAND combriot_plugin_bridge_tests)
+    endif()
 
     if(APPLE AND COMBRIOT_ADHOC_SIGN)
         find_program(COMBRIOT_CODESIGN_EXECUTABLE codesign REQUIRED)

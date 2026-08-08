@@ -1,7 +1,9 @@
 #include "violent/plugins/CombRiotPlugin.h"
 
-#include "violent/ParameterGridEditor.h"
 #include "violent/ProductState.h"
+#ifndef COMBRIOT_PLUGIN_BRIDGE_TEST
+#include "violent/plugins/CombRiotEditor.h"
+#endif
 
 #include <algorithm>
 #include <array>
@@ -174,6 +176,7 @@ void CombRiotPlugin::processBlock (yup::AudioProcessContext<float>& context)
     const auto midiEnd = context.midi.end();
     auto* left = numChannels > 0 ? audio.getWritePointer (0) : nullptr;
     auto* right = numChannels > 1 ? audio.getWritePointer (1) : nullptr;
+    float blockPeak = 0.0f;
 
     for (int sample = 0; sample < numSamples; ++sample)
     {
@@ -183,6 +186,7 @@ void CombRiotPlugin::processBlock (yup::AudioProcessContext<float>& context)
             if (message.isNoteOn())
             {
                 lastNote = std::clamp (message.getNoteNumber(), 0, 127);
+                standaloneGateActive = false;
                 engine.noteOn (lastNote, std::clamp (message.getFloatVelocity(), 0.0f, 1.0f));
             }
             else if (message.isNoteOff())
@@ -205,7 +209,10 @@ void CombRiotPlugin::processBlock (yup::AudioProcessContext<float>& context)
             samplesSinceControlUpdate = 0;
         }
 
+        applyStandaloneTriggerGate();
+
         const auto frame = engine.processSample();
+        blockPeak = std::max (blockPeak, std::max (std::fabs (frame.left), std::fabs (frame.right)));
 
         if (left != nullptr)
             left[sample] = frame.left;
@@ -217,8 +224,18 @@ void CombRiotPlugin::processBlock (yup::AudioProcessContext<float>& context)
 
         --controlSamplesUntilUpdate;
         ++samplesSinceControlUpdate;
+        advanceStandaloneTriggerClock();
     }
 
+    const auto quantizedPeak = static_cast<std::uint32_t> (std::clamp (blockPeak, 0.0f, 1.0f) * 1000000.0f);
+    auto observedPeak = outputPeakQuantized.load (std::memory_order_relaxed);
+    while (quantizedPeak > observedPeak
+           && ! outputPeakQuantized.compare_exchange_weak (observedPeak,
+                                                           quantizedPeak,
+                                                           std::memory_order_release,
+                                                           std::memory_order_relaxed))
+    {
+    }
     context.midi.clear();
 }
 
@@ -227,6 +244,12 @@ void CombRiotPlugin::flush()
     engine.noteOff();
     engine.reset();
     lastNote = -1;
+    standaloneGateActive = false;
+    pendingStandaloneRelease = false;
+    samplesSinceStandaloneTrigger = 0;
+    consumedStandalonePressCount = standalonePressCount.load (std::memory_order_acquire);
+    consumedStandaloneReleaseCount = standaloneReleaseCount.load (std::memory_order_acquire);
+    outputPeakQuantized.store (0, std::memory_order_release);
     controlRefreshPending.store (true, std::memory_order_release);
 }
 
@@ -303,10 +326,32 @@ bool CombRiotPlugin::hasEditor() const
 
 yup::AudioProcessorEditor* CombRiotPlugin::createEditor()
 {
-    return new ParameterGridEditor (*this,
-                                    "CombRiot",
-                                    "Generic parameter editor: final product UI is not implemented yet.",
-                                    0xffff5a1fu);
+#ifdef COMBRIOT_PLUGIN_BRIDGE_TEST
+    return nullptr;
+#else
+    return new CombRiotEditor (*this);
+#endif
+}
+
+void CombRiotPlugin::setStandaloneTriggerGate (bool shouldBeOn) noexcept
+{
+    const auto wasOn = standaloneGateRequested.exchange (shouldBeOn, std::memory_order_acq_rel);
+    if (shouldBeOn == wasOn)
+        return;
+
+    auto& counter = shouldBeOn ? standalonePressCount : standaloneReleaseCount;
+    counter.fetch_add (1, std::memory_order_release);
+}
+
+bool CombRiotPlugin::getStandaloneTriggerGate() const noexcept
+{
+    return standaloneGateRequested.load (std::memory_order_acquire);
+}
+
+float CombRiotPlugin::consumeOutputPeak() noexcept
+{
+    const auto quantizedPeak = outputPeakQuantized.exchange (0, std::memory_order_acq_rel);
+    return static_cast<float> (quantizedPeak) / 1000000.0f;
 }
 
 void CombRiotPlugin::updateEngineParameters (int samplePosition, int samplesSinceLastUpdate)
@@ -340,10 +385,58 @@ void CombRiotPlugin::resetControlCadence() noexcept
     samplesSinceControlUpdate = 1;
 }
 
+void CombRiotPlugin::applyStandaloneTriggerGate() noexcept
+{
+    const auto shouldGate = standaloneGateRequested.load (std::memory_order_acquire);
+    const auto pressCount = standalonePressCount.load (std::memory_order_acquire);
+    const auto releaseCount = standaloneReleaseCount.load (std::memory_order_acquire);
+    const auto hasPressEdge = pressCount != consumedStandalonePressCount;
+    const auto hasReleaseEdge = releaseCount != consumedStandaloneReleaseCount;
+
+    if (lastNote >= 0)
+    {
+        standaloneGateActive = false;
+        pendingStandaloneRelease = false;
+        consumedStandalonePressCount = pressCount;
+        consumedStandaloneReleaseCount = releaseCount;
+        return;
+    }
+
+    if ((hasPressEdge || shouldGate) && ! standaloneGateActive)
+    {
+        engine.noteOn (60, 1.0f);
+        standaloneGateActive = true;
+        pendingStandaloneRelease = false;
+        samplesSinceStandaloneTrigger = 0;
+    }
+
+    if (hasPressEdge)
+        consumedStandalonePressCount = pressCount;
+
+    if (hasReleaseEdge)
+    {
+        consumedStandaloneReleaseCount = releaseCount;
+        if (standaloneGateActive)
+            pendingStandaloneRelease = true;
+    }
+
+    if ((! shouldGate || pendingStandaloneRelease) && standaloneGateActive && samplesSinceStandaloneTrigger > 0)
+    {
+        engine.noteOff();
+        standaloneGateActive = false;
+        pendingStandaloneRelease = false;
+    }
+}
+
+void CombRiotPlugin::advanceStandaloneTriggerClock() noexcept
+{
+    if (standaloneGateActive && samplesSinceStandaloneTrigger < 0x3fffffff)
+        ++samplesSinceStandaloneTrigger;
+}
+
 } // namespace violent::plugin
 
 extern "C" yup::AudioProcessor* createPluginProcessor()
 {
     return new violent::plugin::CombRiotPlugin();
 }
-
