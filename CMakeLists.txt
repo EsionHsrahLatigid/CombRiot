@@ -77,7 +77,7 @@ if(COMBRIOT_BUILD_PLUGIN)
         PLUGIN_EMAIL ""
         PLUGIN_VERSION "${PROJECT_VERSION}"
         PLUGIN_DESCRIPTION "Noise-excited fractional comb resonator swarm"
-        PLUGIN_URL "https://github.com/2bbb/CombRiot"
+        PLUGIN_URL "https://github.com/EsionHsrahLatigid/CombRiot"
         PLUGIN_IS_SYNTH ON
         PLUGIN_IS_MONO OFF
         PLUGIN_CREATE_CLAP OFF
