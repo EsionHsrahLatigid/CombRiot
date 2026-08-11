@@ -68,12 +68,12 @@ if(COMBRIOT_BUILD_PLUGIN)
         TARGET_NAME combriot
         TARGET_VERSION ${PROJECT_VERSION}
         TARGET_IDE_GROUP "CombRiot"
-        TARGET_APP_ID "audio.2bit.combriot"
-        TARGET_APP_NAMESPACE "audio.2bit"
+        TARGET_APP_ID "jp.ehl.combriot"
+        TARGET_APP_NAMESPACE "jp.ehl"
         TARGET_CXX_STANDARD 20
-        PLUGIN_ID "audio.2bit.CombRiot"
+        PLUGIN_ID "jp.ehl.combriot"
         PLUGIN_NAME "CombRiot"
-        PLUGIN_VENDOR "2bit"
+        PLUGIN_VENDOR "ehl_"
         PLUGIN_EMAIL ""
         PLUGIN_VERSION "${PROJECT_VERSION}"
         PLUGIN_DESCRIPTION "Noise-excited fractional comb resonator swarm"
@@ -84,7 +84,7 @@ if(COMBRIOT_BUILD_PLUGIN)
         PLUGIN_CREATE_VST3 ON
         PLUGIN_CREATE_AU ${COMBRIOT_CREATE_AU}
         PLUGIN_AU_SUBTYPE "CmRt"
-        PLUGIN_AU_MANUFACTURER "2Bit"
+        PLUGIN_AU_MANUFACTURER "EHL1"
         PLUGIN_AU_SANDBOX_SAFE ON
         PLUGIN_CREATE_AUv3 OFF
         PLUGIN_CREATE_LV2 OFF

@@ -8,8 +8,8 @@ This project is independent and self-contained except for an adjacent YUP checko
 
 | Surface | Value |
 | --- | --- |
-| App ID | `audio.2bit.combriot` |
-| Plugin ID | `audio.2bit.CombRiot` |
+| App ID | `jp.ehl.combriot` |
+| Plugin ID | `jp.ehl.combriot` |
 | AU subtype | `CmRt` |
 | AU manufacturer | `2Bit` |
 | Formats | Standalone, VST3, AUv2 on macOS |
