@@ -141,6 +141,15 @@ if(COMBRIOT_BUILD_PLUGIN)
     add_custom_target(combriot_release_bundles
         DEPENDS ${combriot_release_bundle_targets})
 
+    include(cmake/EhlYupArtifactLayout.cmake)
+    ehl_yup_add_artifact_target(
+        TARGET ehl_stage_products
+        PRODUCT CombRiot
+        SLUG combriot
+        STANDALONE_TARGET combriot_standalone_plugin
+        VST3_TARGET combriot_vst3_plugin
+        AU_TARGET combriot_au_plugin)
+
     if(APPLE AND COMBRIOT_ADHOC_SIGN)
         find_program(COMBRIOT_CODESIGN_EXECUTABLE codesign REQUIRED)
         foreach(combriot_target IN ITEMS combriot_standalone_plugin combriot_vst3_plugin combriot_au_plugin)

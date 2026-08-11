@@ -72,20 +72,22 @@ ctest --preset plugin-release
 Artifacts:
 
 - `combriot_release_bundles`
-- `build/plugin-release/combriot_standalone_plugin.app`
-- `build/plugin-release/VST3/Release/combriot_vst3_plugin.vst3`
-- `build/plugin-release/combriot_au_plugin.component`
+- `artifacts/plugin-release/macos-arm64/standalone/combriot_standalone_plugin.app`
+- `artifacts/plugin-release/macos-arm64/vst3/combriot_vst3_plugin.vst3`
+- `artifacts/plugin-release/macos-arm64/au/combriot_au_plugin.component`
 
 Local installation is intentionally separate from the build:
 
 ```sh
-cp -R build/plugin-release/VST3/Release/combriot_vst3_plugin.vst3 "$HOME/Library/Audio/Plug-Ins/VST3/"
-cp -R build/plugin-release/combriot_au_plugin.component "$HOME/Library/Audio/Plug-Ins/Components/"
+cp -R artifacts/plugin-release/macos-arm64/vst3/combriot_vst3_plugin.vst3 "$HOME/Library/Audio/Plug-Ins/VST3/"
+cp -R artifacts/plugin-release/macos-arm64/au/combriot_au_plugin.component "$HOME/Library/Audio/Plug-Ins/Components/"
 ```
 
 The local macOS build ad-hoc signs all three bundles. Distribution still requires a Developer ID signing and notarization workflow.
 
 ## CI and releases
+
+`build/` is CMake's internal workspace. Human-facing products are staged under `artifacts/plugin-release/<platform-arch>/`; Windows uses `windows-x64` with `standalone/` and `vst3/`.
 
 `.github/workflows/ci.yml` is the required CI entrypoint for pushes to `main`, pull requests, and manual runs. A lightweight Linux classifier always runs. Changes limited to `README.md`, `DESIGN.md`, `LICENSE`, `docs/**`, or `.github/ISSUE_TEMPLATE/**` skip the heavy jobs; every other change runs Debug tests and Release bundle builds on macOS 26 arm64 and Windows 2025 x64. Manual dispatches default to forcing both heavy jobs.
 
