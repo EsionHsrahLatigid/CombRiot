@@ -9,6 +9,11 @@
 #include <memory>
 #include <vector>
 
+namespace ehl::ui
+{
+class StripMeter;
+}
+
 namespace violent::plugin
 {
 
@@ -39,6 +44,7 @@ private:
     std::unique_ptr<yup::Label> titleLabel;
     std::unique_ptr<yup::Label> warningLabel;
     std::unique_ptr<TriggerPad> triggerPad;
+    std::unique_ptr<ehl::ui::StripMeter> outputMeter;
     std::vector<yup::AudioParameter::Ptr> parameters;
     std::vector<std::unique_ptr<yup::Label>> labels;
     std::vector<std::unique_ptr<yup::Slider>> sliders;

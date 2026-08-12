@@ -60,6 +60,12 @@ if(COMBRIOT_BUILD_PLUGIN)
         FetchContent_MakeAvailable(yup)
     endif()
 
+    if(NOT EXISTS "${CMAKE_CURRENT_LIST_DIR}/external/yup-ehl-design-module/CMakeLists.txt")
+        message(FATAL_ERROR "Missing yup-ehl-design-module. Run: git submodule update --init")
+    endif()
+    add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/external/yup-ehl-design-module"
+                     "${CMAKE_BINARY_DIR}/yup-ehl-design-module")
+
     if(APPLE)
         include(cmake/YupMacOSIconWorkaround.cmake)
     endif()
@@ -104,7 +110,7 @@ if(COMBRIOT_BUILD_PLUGIN)
         source/violent/plugins/StandaloneGateState.h
         source/violent/plugins/CombRiotPlugin.cpp
         source/violent/plugins/CombRiotPlugin.h)
-    target_link_libraries(combriot_shared INTERFACE combriot_engine)
+    target_link_libraries(combriot_shared INTERFACE combriot_engine ehl::yup_plugin_ui)
     target_include_directories(combriot_shared INTERFACE
         "${CMAKE_CURRENT_LIST_DIR}/include"
         "${CMAKE_CURRENT_LIST_DIR}/source")

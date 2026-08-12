@@ -11,7 +11,8 @@ This project is independent and self-contained except for an adjacent YUP checko
 | App ID | `jp.ehl.combriot` |
 | Plugin ID | `jp.ehl.combriot` |
 | AU subtype | `CmRt` |
-| AU manufacturer | `2Bit` |
+| Plugin vendor | `ehl_` |
+| AU manufacturer | `EHL1` |
 | Formats | Standalone, VST3, AUv2 on macOS |
 | Type | Synth, stereo output, MIDI input |
 
@@ -48,10 +49,17 @@ Parameters:
 - Ninja
 - Xcode / macOS SDK for AU builds
 - A local YUP checkout at `../yup`, or network access for the pinned fallback checkout
+- The shared `external/yup-ehl-design-module` submodule
 
 YUP is pinned to commit `9a1c9bc699b6a714f6f52486462d98a140c8bf95` when the adjacent checkout is absent.
 
 ## Build and test
+
+Clone with `--recurse-submodules`, or initialize the shared [yup-ehl-design-module](https://github.com/EsionHsrahLatigid/yup-ehl-design-module) before configuring:
+
+```sh
+git submodule update --init
+```
 
 Fast DSP-only loop:
 
