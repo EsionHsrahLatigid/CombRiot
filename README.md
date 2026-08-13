@@ -84,12 +84,7 @@ Artifacts:
 - `artifacts/plugin-release/macos-arm64/vst3/combriot_vst3_plugin.vst3`
 - `artifacts/plugin-release/macos-arm64/au/combriot_au_plugin.component`
 
-Local installation is intentionally separate from the build:
-
-```sh
-cp -R artifacts/plugin-release/macos-arm64/vst3/combriot_vst3_plugin.vst3 "$HOME/Library/Audio/Plug-Ins/VST3/"
-cp -R artifacts/plugin-release/macos-arm64/au/combriot_au_plugin.component "$HOME/Library/Audio/Plug-Ins/Components/"
-```
+On local macOS non-CI `plugin-release` builds, the staged VST3 and AU bundles are also physically copied to `~/Library/Audio/Plug-Ins/VST3` and `~/Library/Audio/Plug-Ins/Components`; Standalone stays in `artifacts/`. Configure with `-DEHL_COPY_PLUGIN_AFTER_BUILD=OFF` to disable the local plugin copy.
 
 The local macOS build ad-hoc signs all three bundles. Distribution still requires a Developer ID signing and notarization workflow.
 
