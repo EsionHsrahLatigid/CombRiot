@@ -51,7 +51,7 @@ Parameters:
 - A local YUP checkout at `../yup`, or network access for the pinned fallback checkout
 - The shared `external/yup-ehl-design-module` submodule
 
-YUP is pinned to commit `fa83e8c55664727ae5a53b94a3f6b5b336ce9e57` when the adjacent checkout is absent.
+YUP is pinned to commit `ca9fd92a8e56da8924676858512118aa0ff37272` when the adjacent checkout is absent.
 
 ## Build and test
 
